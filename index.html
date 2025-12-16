@@ -1,1 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToDoLiSt</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background">
+        <div class="orb orb-left"></div>
+        <div class="orb orb-right"></div>
+        <div class="grid"></div>
+    </div>
+    <div class="app-shell">
+        <header class="topbar">
+            <div class="brand">
+                <span class="dot"></span>
+                <div>
+                    <p class="eyebrow">Organisateur personnel</p>
+                    <h1>Todo list élégante</h1>
+                </div>
+            </div>
+            <div class="meta">
+                <p id="today"></p>
+            </div>
+        </header>
 
+        <main class="content">
+            <section class="panel form-panel">
+                <div class="panel-header">
+                    <div>
+                        <p class="eyebrow">Nouvelle tâche</p>
+                        <h2>Planifier et avancer</h2>
+                    </div>
+                    <button id="cancel-edit" class="ghost" type="button" hidden>Annuler l'édition</button>
+                </div>
+                <form id="todo-form" autocomplete="off">
+                    <div class="field-row">
+                        <label class="field">
+                            <span>Titre</span>
+                            <input id="title" name="title" type="text" placeholder="Préparer la réunion" required>
+                        </label>
+                        <label class="field">
+                            <span>Priorité</span>
+                            <select id="priority" name="priority">
+                                <option value="none">Aucune</option>
+                                <option value="high">Haute</option>
+                                <option value="medium">Moyenne</option>
+                                <option value="low">Basse</option>
+                            </select>
+                        </label>
+                        <label class="field">
+                            <span>Échéance</span>
+                            <input id="due" name="due" type="date">
+                        </label>
+                    </div>
+                    <label class="field">
+                        <span>Détails</span>
+                        <textarea id="details" name="details" rows="3" placeholder="Notes rapides, lien, check-list..."></textarea>
+                    </label>
+                    <button class="primary" type="submit" id="submit-btn">Ajouter la tâche</button>
+                </form>
+            </section>
+
+            <section class="panel list-panel">
+                <div class="panel-header">
+                    <div>
+                        <p class="eyebrow">Vue d'ensemble</p>
+                        <h2>Vos tâches</h2>
+                    </div>
+                    <div class="stats">
+                        <span id="count-open">0 en cours</span>
+                        <span id="count-done">0 terminées</span>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <div class="control-group">
+                        <label class="field">
+                            <span>Filtrer</span>
+                            <select id="status-filter">
+                                <option value="all">Toutes</option>
+                                <option value="open">En cours</option>
+                                <option value="done">Terminées</option>
+                            </select>
+                        </label>
+                        <label class="field">
+                            <span>Priorité</span>
+                            <select id="priority-filter">
+                                <option value="all">Toutes</option>
+                                <option value="high">Haute</option>
+                                <option value="medium">Moyenne</option>
+                                <option value="low">Basse</option>
+                            </select>
+                        </label>
+                        <label class="field">
+                            <span>Tri</span>
+                            <select id="sort">
+                                <option value="created-desc">Plus récentes</option>
+                                <option value="due-asc">Échéance proche</option>
+                                <option value="priority-desc">Priorité haute</option>
+                            </select>
+                        </label>
+                    </div>
+                    <label class="field search">
+                        <span>Recherche</span>
+                        <input id="search" type="search" placeholder="Trouver une tâche">
+                    </label>
+                </div>
+
+                <div class="bulk-bar">
+                    <div class="bulk-left">
+                        <label class="checkbox select-all">
+                            <input type="checkbox" id="select-all" aria-label="Sélectionner toutes les tâches visibles">
+                            <span class="checkmark"></span>
+                        </label>
+                        <span class="bulk-label">Sélectionner visibles</span>
+                    </div>
+                    <div class="bulk-right">
+                        <span id="selected-count">0 sélectionnée</span>
+                        <button class="ghost danger" id="bulk-delete" disabled>Supprimer la sélection</button>
+                    </div>
+                </div>
+
+                <div id="todo-list" class="todo-list" aria-live="polite"></div>
+                <p id="empty" class="empty" hidden>Aucune tâche pour le moment. Ajoutez-en une pour démarrer.</p>
+            </section>
+        </main>
+    </div>
+
+    <template id="todo-template">
+        <article class="todo" data-id="">
+            <label class="checkbox">
+                <input type="checkbox" class="toggle" aria-label="Terminer la tâche">
+                <span class="checkmark"></span>
+            </label>
+            <div class="todo-body">
+                <div class="todo-top">
+                    <div class="title-line">
+                        <p class="title"></p>
+                        <span class="pill priority"></span>
+                    </div>
+                    <div class="meta-line">
+                        <span class="due"></span>
+                        <span class="created"></span>
+                    </div>
+                </div>
+                <p class="details"></p>
+                <div class="actions">
+                    <button class="ghost edit">Modifier</button>
+                    <button class="ghost danger delete">Supprimer</button>
+                </div>
+            </div>
+            <label class="checkbox select-box">
+                <input type="checkbox" class="select-toggle" aria-label="Sélectionner pour suppression multiple">
+                <span class="checkmark"></span>
+            </label>
+        </article>
+    </template>
+
+    <script src="script.js"></script>
+</body>
+</html>
