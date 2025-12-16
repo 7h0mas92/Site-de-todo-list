@@ -14,9 +14,12 @@ const searchInput = document.getElementById('search');
 const countOpen = document.getElementById('count-open');
 const countDone = document.getElementById('count-done');
 const todayLabel = document.getElementById('today');
+const themeSelect = document.getElementById('theme-select');
 const bulkDeleteBtn = document.getElementById('bulk-delete');
 const selectAllCheckbox = document.getElementById('select-all');
 const selectedCountLabel = document.getElementById('selected-count');
+const enableNotificationsCheckbox = document.getElementById('enable-notifications');
+const reminderDaysSelect = document.getElementById('reminder-days');
 
 let todos = [];
 let editingId = null;
@@ -26,11 +29,14 @@ const DB_VERSION = 1;
 let db;
 let storageFallback = false;
 const selectedIds = new Set();
+let notificationPermission = false;
 
 const priorityLabels = {
+    urgent: 'Urgente',
     high: 'Haute',
     medium: 'Moyenne',
-    low: 'Basse'
+    low: 'Basse',
+    none: 'Aucune'
 };
 
 function formatDate(dateString) {
@@ -42,6 +48,66 @@ function formatDate(dateString) {
 function formatRelative(dateString) {
     const date = new Date(dateString);
     return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+}
+
+function isDueSoon(dueDate) {
+    if (!dueDate) return false;
+    const due = new Date(dueDate);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    due.setHours(0, 0, 0, 0);
+    
+    const reminderDays = parseInt(reminderDaysSelect.value) || 1;
+    const diffDays = Math.ceil((due - now) / (1000 * 60 * 60 * 24));
+    
+    return diffDays >= 0 && diffDays <= reminderDays;
+}
+
+async function requestNotificationPermission() {
+    if (!('Notification' in window)) {
+        notificationPermission = false;
+        return;
+    }
+    
+    if (Notification.permission === 'granted') {
+        notificationPermission = true;
+    } else if (Notification.permission !== 'denied') {
+        const permission = await Notification.requestPermission();
+        notificationPermission = permission === 'granted';
+    }
+}
+
+function showNotification(todo) {
+    if (!notificationPermission || !enableNotificationsCheckbox.checked) return;
+    
+    const title = '⏰ Échéance proche';
+    const body = `${todo.title} - ${formatDate(todo.due)}`;
+    const notification = new Notification(title, {
+        body,
+        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="%237cf0c4"/></svg>',
+        badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="%237cf0c4"/></svg>'
+    });
+    
+    notification.onclick = () => {
+        window.focus();
+        notification.close();
+    };
+}
+
+function checkReminders() {
+    const now = new Date();
+    const lastCheck = localStorage.getItem('lastReminderCheck');
+    const today = now.toDateString();
+    
+    if (lastCheck === today) return;
+    
+    todos.forEach(todo => {
+        if (!todo.done && isDueSoon(todo.due)) {
+            showNotification(todo);
+        }
+    });
+    
+    localStorage.setItem('lastReminderCheck', today);
 }
 
 function initDb() {
@@ -156,7 +222,7 @@ function getVisibleTodos() {
             case 'due-asc':
                 return (a.due || '') > (b.due || '') ? 1 : -1;
             case 'priority-desc':
-                const order = { high: 3, medium: 2, low: 1 };
+                const order = { urgent: 4, high: 3, medium: 2, low: 1, none: 0 };
                 return order[b.priority] - order[a.priority];
             default:
                 return b.createdAt.localeCompare(a.createdAt);
@@ -209,6 +275,12 @@ function renderTodos() {
         node.querySelector('.priority').dataset.level = todo.priority;
         node.querySelector('.due').textContent = formatDate(todo.due);
         node.querySelector('.created').textContent = `Créée le ${formatRelative(todo.createdAt)}`;
+        
+        const reminderBadge = node.querySelector('.reminder');
+        if (!todo.done && isDueSoon(todo.due)) {
+            reminderBadge.hidden = false;
+        }
+        
         const checkbox = node.querySelector('.toggle');
         checkbox.checked = todo.done;
         if (todo.done) {
@@ -346,10 +418,32 @@ todoList.addEventListener('click', handleListClick);
 cancelEditBtn.addEventListener('click', resetForm);
 selectAllCheckbox.addEventListener('change', handleSelectAllChange);
 bulkDeleteBtn.addEventListener('click', handleBulkDelete);
+enableNotificationsCheckbox.addEventListener('change', () => {
+    if (enableNotificationsCheckbox.checked) {
+        requestNotificationPermission();
+    }
+});
+reminderDaysSelect.addEventListener('change', renderTodos);
 
 (async function init() {
     hydrateToday();
     await initDb();
     await loadTodos();
     renderTodos();
+    await requestNotificationPermission();
+    checkReminders();
+    setInterval(checkReminders, 60 * 60 * 1000);
+    // thème initial
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    if (themeSelect) themeSelect.value = savedTheme;
 })();
+
+// Gestion du changement de thème
+if (themeSelect) {
+    themeSelect.addEventListener('change', () => {
+        const theme = themeSelect.value;
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+    });
+}

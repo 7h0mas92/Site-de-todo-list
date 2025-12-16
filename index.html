@@ -17,12 +17,28 @@
             <div class="brand">
                 <span class="dot"></span>
                 <div>
-                    <p class="eyebrow">Organisateur personnel</p>
-                    <h1>Todo list élégante</h1>
+                    <p class="eyebrow">Organisez vous </p>
+                    <h1>Todo list </h1>
                 </div>
             </div>
             <div class="meta">
                 <p id="today"></p>
+                <label class="field theme-switch">
+                    <span>Thème</span>
+                    <select id="theme-select" aria-label="Choisir le thème">
+                        <option value="light">Clair</option>
+                        <option value="dark">Sombre</option>
+                        <option value="sepia">Sépia</option>
+                        <option value="solarized">Solarized</option>
+                        <option value="nord">Nord</option>
+                        <option value="forest">Forêt</option>
+                        <option value="plum">Prune</option>
+                        <option value="high-contrast">Contraste élevé</option>
+                        <option value="espace">Espace</option>
+                        <option value="soleil">Soleil</option>
+                        <option value="fluo">Fluo</option>
+                    </select>
+                </label>
             </div>
         </header>
 
@@ -45,9 +61,10 @@
                             <span>Priorité</span>
                             <select id="priority" name="priority">
                                 <option value="none">Aucune</option>
-                                <option value="high">Haute</option>
-                                <option value="medium">Moyenne</option>
                                 <option value="low">Basse</option>
+                                <option value="medium">Moyenne</option>
+                                <option value="high">Haute</option>
+                                <option value="urgent">Urgente</option>
                             </select>
                         </label>
                         <label class="field">
@@ -61,6 +78,22 @@
                     </label>
                     <button class="primary" type="submit" id="submit-btn">Ajouter la tâche</button>
                 </form>
+                <div class="reminder-settings">
+                    <p class="eyebrow">Paramètres des rappels</p>
+                    <label class="reminder-option">
+                        <input type="checkbox" id="enable-notifications" checked>
+                        <span>Activer les notifications</span>
+                    </label>
+                    <label class="field reminder-threshold">
+                        <span>Rappel avant échéance</span>
+                        <select id="reminder-days">
+                            <option value="0">Le jour même</option>
+                            <option value="1" selected>1 jour avant</option>
+                            <option value="2">2 jours avant</option>
+                            <option value="3">3 jours avant</option>
+                        </select>
+                    </label>
+                </div>
             </section>
 
             <section class="panel list-panel">
@@ -89,6 +122,7 @@
                             <span>Priorité</span>
                             <select id="priority-filter">
                                 <option value="all">Toutes</option>
+                                <option value="urgent">Urgente</option>
                                 <option value="high">Haute</option>
                                 <option value="medium">Moyenne</option>
                                 <option value="low">Basse</option>
@@ -140,6 +174,7 @@
                     <div class="title-line">
                         <p class="title"></p>
                         <span class="pill priority"></span>
+                        <span class="pill reminder" hidden>⏰ Échéance proche</span>
                     </div>
                     <div class="meta-line">
                         <span class="due"></span>
@@ -160,5 +195,12 @@
     </template>
 
     <script src="script.js"></script>
+    <script>
+        // Initialise le thème au plus tôt pour éviter le flash
+        (function(){
+            const saved = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', saved);
+        })();
+    </script>
 </body>
 </html>
